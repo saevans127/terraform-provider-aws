@@ -48,30 +48,15 @@ func (d *dataSourceRules) Schema(ctx context.Context, req datasource.SchemaReque
 	}
 }
 
-// TIP: ==== ASSIGN CRUD METHODS ====
-// Data sources only have a read method.
 func (d *dataSourceRules) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	// TIP: ==== DATA SOURCE READ ====
-	// Generally, the Read function should do the following things. Make
-	// sure there is a good reason if you don't do one of these.
-	//
-	// 1. Get a client connection to the relevant service
-	// 2. Fetch the config
-	// 3. Get information about a resource from AWS
-	// 4. Set the ID, arguments, and attributes
-	// 5. Set the tags
-	// 6. Set the state
-	// TIP: -- 1. Get a client connection to the relevant service
 	conn := d.Meta().EventsClient(ctx)
 
-	// TIP: -- 2. Fetch the config
 	var data dataSourceRulesModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// TIP: -- 3. Get information about a resource from AWS
 	input := eventbridge.ListRulesInput{
 		NamePrefix:   fwflex.StringFromFramework(ctx, data.NamePrefix),
 		EventBusName: fwflex.StringFromFramework(ctx, data.EventBusName),
@@ -85,31 +70,14 @@ func (d *dataSourceRules) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	// TIP: -- 4. Set the ID, arguments, and attributes
-	// Using a field name prefix allows mapping fields such as `RulesId` to `ID`
 	resp.Diagnostics.Append(flex.Flatten(ctx, out, &data.Rules)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// TIP: -- 5. Set the tags
-
-	// TIP: -- 6. Set the state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-// TIP: ==== DATA STRUCTURES ====
-// With Terraform Plugin-Framework configurations are deserialized into
-// Go types, providing type safety without the need for type assertions.
-// These structs should match the schema definition exactly, and the `tfsdk`
-// tag value should match the attribute name.
-//
-// Nested objects are represented in their own data struct. These will
-// also have a corresponding attribute type mapping for use inside flex
-// functions.
-//
-// See more:
-// https://developer.hashicorp.com/terraform/plugin/framework/handling-data/accessing-values
 type dataSourceRulesModel struct {
 	framework.WithRegionModel
 	Rules        fwtypes.ListNestedObjectValueOf[dataSourceRuleModel] `tfsdk:"rules"`
