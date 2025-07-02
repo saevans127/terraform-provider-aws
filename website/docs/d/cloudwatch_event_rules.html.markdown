@@ -26,6 +26,7 @@ Provides details about an AWS EventBridge Rules.
 
 ```terraform
 data "aws_events_rules" "example" {
+name_prefix = "test"
 }
 ```
 
