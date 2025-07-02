@@ -34,26 +34,26 @@ import (
 	// need to import types and reference the nested types, e.g., as
 	// types.<Type Name>.
 	"fmt"
-	"strings"
+	//"strings"
 	"testing"
 
-	"github.com/YakDriver/regexache"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
-	"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
-	"github.com/hashicorp/aws-sdk-go-base/v2/awsv1shim/v2/tfawserr"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	//"github.com/YakDriver/regexache"
+	//"github.com/aws/aws-sdk-go-v2/aws"
+	//"github.com/aws/aws-sdk-go-v2/service/eventbridge"
+	//"github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
+	//"github.com/hashicorp/aws-sdk-go-base/v2/awsv1shim/v2/tfawserr"
+	//"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	sdkacctest "github.com/hashicorp/terraform-plugin-testing/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	//"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-aws/internal/acctest"
-	"github.com/hashicorp/terraform-provider-aws/internal/conns"
-	"github.com/hashicorp/terraform-provider-aws/internal/create"
+	//"github.com/hashicorp/terraform-provider-aws/internal/conns"
+	//"github.com/hashicorp/terraform-provider-aws/internal/create"
 
 	// TIP: You will often need to import the package that this test file lives
 	// in. Since it is in the "test" context, it must import the package to use
 	// any normal context constants, variables, or functions.
-	tfevents "github.com/hashicorp/terraform-provider-aws/internal/service/events"
+	//tfevents "github.com/hashicorp/terraform-provider-aws/internal/service/events"
 	"github.com/hashicorp/terraform-provider-aws/names"
 )
 
@@ -70,69 +70,6 @@ import (
 // 7. Helper functions (exists, destroy, check, etc.)
 // 8. Functions that return Terraform configurations
 
-// TIP: ==== UNIT TESTS ====
-// This is an example of a unit test. Its name is not prefixed with
-// "TestAcc" like an acceptance test.
-//
-// Unlike acceptance tests, unit tests do not access AWS and are focused on a
-// function (or method). Because of this, they are quick and cheap to run.
-//
-// In designing a data source's implementation, isolate complex bits from AWS bits
-// so that they can be tested through a unit test. We encourage more unit tests
-// in the provider.
-//
-// Cut and dry functions using well-used patterns, like typical flatteners and
-// expanders, don't need unit testing. However, if they are complex or
-// intricate, they should be unit tested.
-func TestRulesExampleUnitTest(t *testing.T) {
-	t.Parallel()
-
-	testCases := []struct {
-		TestName string
-		Input    string
-		Expected string
-		Error    bool
-	}{
-		{
-			TestName: "empty",
-			Input:    "",
-			Expected: "",
-			Error:    true,
-		},
-		{
-			TestName: "descriptive name",
-			Input:    "some input",
-			Expected: "some output",
-			Error:    false,
-		},
-		{
-			TestName: "another descriptive name",
-			Input:    "more input",
-			Expected: "more output",
-			Error:    false,
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Run(testCase.TestName, func(t *testing.T) {
-			t.Parallel()
-			got, err := tfevents.FunctionFromDataSource(testCase.Input)
-
-			if err != nil && !testCase.Error {
-				t.Errorf("got error (%s), expected no error", err)
-			}
-
-			if err == nil && testCase.Error {
-				t.Errorf("got (%s) and no error, expected error", got)
-			}
-
-			if got != testCase.Expected {
-				t.Errorf("got %s, expected %s", got, testCase.Expected)
-			}
-		})
-	}
-}
-
 // TIP: ==== ACCEPTANCE TESTS ====
 // This is an example of a basic acceptance test. This should test as much of
 // standard functionality of the data source as possible, and test importing, if
@@ -148,66 +85,132 @@ func TestAccEventsRulesDataSource_basic(t *testing.T) {
 		t.Skip("skipping long-running test in short mode")
 	}
 
-	var rules eventbridge.DescribeRulesResponse
-	rName := sdkacctest.RandomWithPrefix(acctest.ResourcePrefix)
-	dataSourceName := "data.aws_events_rules.test"
+	//busName := sdkacctest.RandomWithPrefix(acctest.ResourcePrefix)
+	ruleName := sdkacctest.RandomWithPrefix(acctest.ResourcePrefix)
+	resourceName := "aws_cloudwatch_event_rule.test"
+	dataSource1Name := "data.aws_cloudwatch_event_rules.by_name_prefix"
+	dataSource2Name := "data.aws_cloudwatch_event_rules.all"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			acctest.PreCheck(ctx, t)
 			acctest.PreCheckPartitionHasService(t, names.EventsEndpointID)
-			testAccPreCheck(ctx, t)
 		},
 		ErrorCheck:               acctest.ErrorCheck(t, names.EventsServiceID),
 		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
-		CheckDestroy:             testAccCheckRulesDestroy(ctx),
+		CheckDestroy:             testAccCheckRuleDestroy(ctx),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccRulesDataSourceConfig_basic(rName),
+				Config: testAccRulesDataSourceConfig_basic(ruleName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckRulesExists(ctx, dataSourceName, &rules),
-					resource.TestCheckResourceAttr(dataSourceName, "auto_minor_version_upgrade", "false"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "maintenance_window_start_time.0.day_of_week"),
-					resource.TestCheckTypeSetElemNestedAttrs(dataSourceName, "user.*", map[string]string{
-						"console_access": "false",
-						"groups.#":       "0",
-						"username":       "Test",
-						"password":       "TestTest1234",
-					}),
-					// TIP: If the ARN can be partially or completely determined by the parameters passed, e.g. it contains the
-					// value of `rName`, either include the values in the regex or check for an exact match using `acctest.CheckResourceAttrRegionalARN`
-					// Alternatively, if the data source returns the values for a corresponding resource, use `resource.TestCheckResourceAttrPair` to
-					// check that the values are the same.
-					acctest.MatchResourceAttrRegionalARN(ctx, dataSourceName, names.AttrARN, "events", regexache.MustCompile(`rules:.+$`)),
+					resource.TestCheckResourceAttrPair(dataSource2Name, "rules.0.name", resourceName, names.AttrName),
+					acctest.CheckResourceAttrGreaterThanOrEqualValue(dataSource2Name, "rules.#", 1),
+					resource.TestCheckResourceAttr(dataSource1Name, "rules.#", "1"),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.arn", resourceName, names.AttrARN),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.description", resourceName, "description"),
+					resource.TestCheckResourceAttr(dataSource1Name, "rules.0.event_bus_name", "default"),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.event_pattern", resourceName, "event_pattern"),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.managed_by", resourceName, "managed_by"),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.name", resourceName, names.AttrName),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.state", resourceName, "state"),
 				),
 			},
 		},
 	})
 }
 
-func testAccRulesDataSourceConfig_basic(rName, version string) string {
+func TestAccEventsRulesDataSource_custom(t *testing.T) {
+	ctx := acctest.Context(t)
+	// TIP: This is a long-running test guard for tests that run longer than
+	// 300s (5 min) generally.
+	if testing.Short() {
+		t.Skip("skipping long-running test in short mode")
+	}
+
+	busName := sdkacctest.RandomWithPrefix(acctest.ResourcePrefix)
+	ruleName := sdkacctest.RandomWithPrefix(acctest.ResourcePrefix)
+	resourceName := "aws_cloudwatch_event_rule.test"
+	dataSource1Name := "data.aws_cloudwatch_event_rules.by_name_prefix"
+	dataSource2Name := "data.aws_cloudwatch_event_rules.all"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck: func() {
+			acctest.PreCheck(ctx, t)
+			acctest.PreCheckPartitionHasService(t, names.EventsEndpointID)
+		},
+		ErrorCheck:               acctest.ErrorCheck(t, names.EventsServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckRuleDestroy(ctx),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccRulesDataSourceConfig_custom(busName, ruleName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrPair(dataSource2Name, "rules.0.name", resourceName, names.AttrName),
+					acctest.CheckResourceAttrGreaterThanOrEqualValue(dataSource2Name, "rules.#", 1),
+					resource.TestCheckResourceAttr(dataSource1Name, "rules.#", "1"),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.arn", resourceName, names.AttrARN),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.description", resourceName, "description"),
+					resource.TestCheckResourceAttr(dataSource1Name, "rules.0.event_bus_name", busName),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.event_pattern", resourceName, "event_pattern"),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.managed_by", resourceName, "managed_by"),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.name", resourceName, names.AttrName),
+					resource.TestCheckResourceAttrPair(dataSource1Name, "rules.0.state", resourceName, "state"),
+				),
+			},
+		},
+	})
+}
+
+func testAccRulesDataSourceConfig_basic(ruleName string) string {
 	return fmt.Sprintf(`
-data "aws_security_group" "test" {
+resource "aws_cloudwatch_event_rule" "test" {
+  name = %[1]q
+  description = "a test rule"
+  event_pattern  = <<PATTERN
+{
+	"source": [
+		"aws.ec2"
+	]
+}
+PATTERN
+}
+
+data "aws_cloudwatch_event_rules" "by_name_prefix" {
+  name_prefix = aws_cloudwatch_event_rule.test.name
+}
+
+data "aws_cloudwatch_event_rules" "all" {
+  depends_on = [aws_cloudwatch_event_rule.test]
+}
+`, ruleName)
+}
+
+func testAccRulesDataSourceConfig_custom(busName string, ruleName string) string {
+	return fmt.Sprintf(`
+resource "aws_cloudwatch_event_bus" "test" {
   name = %[1]q
 }
-
-data "aws_events_rules" "test" {
-  rules_name             = %[1]q
-  engine_type             = "ActiveEvents"
-  engine_version          = %[2]q
-  host_instance_type      = "events.t2.micro"
-  security_groups         = [aws_security_group.test.id]
-  authentication_strategy = "simple"
-  storage_type            = "efs"
-
-  logs {
-    general = true
-  }
-
-  user {
-    username = "Test"
-    password = "TestTest1234"
-  }
+resource "aws_cloudwatch_event_rule" "test" {
+  name = %[2]q
+  description = "a test rule"
+  event_bus_name = aws_cloudwatch_event_bus.test.name
+  event_pattern  = <<PATTERN
+{
+	"source": [
+		"aws.ec2"
+	]
 }
-`, rName, version)
+PATTERN
+}
+
+data "aws_cloudwatch_event_rules" "by_name_prefix" {
+  name_prefix = aws_cloudwatch_event_rule.test.name
+  event_bus_name = aws_cloudwatch_event_bus.test.name
+}
+
+data "aws_cloudwatch_event_rules" "all" {
+  depends_on = [aws_cloudwatch_event_rule.test]
+  event_bus_name = aws_cloudwatch_event_bus.test.name
+}
+`, busName, ruleName)
 }

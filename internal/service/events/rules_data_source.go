@@ -37,6 +37,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
 	awstypes "github.com/aws/aws-sdk-go-v2/service/eventbridge/types"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -102,6 +103,9 @@ func (d *dataSourceRules) Schema(ctx context.Context, req datasource.SchemaReque
 			names.AttrNamePrefix: schema.StringAttribute{
 				Optional: true,
 			},
+			"event_bus_name": schema.StringAttribute{
+				Optional: true,
+			},
 		},
 	}
 }
@@ -131,7 +135,8 @@ func (d *dataSourceRules) Read(ctx context.Context, req datasource.ReadRequest, 
 
 	// TIP: -- 3. Get information about a resource from AWS
 	input := eventbridge.ListRulesInput{
-		NamePrefix: fwflex.StringFromFramework(ctx, data.NamePrefix),
+		NamePrefix:   fwflex.StringFromFramework(ctx, data.NamePrefix),
+		EventBusName: fwflex.StringFromFramework(ctx, data.EventBusName),
 	}
 	out, err := findRules(ctx, conn, &input)
 	if err != nil {
@@ -169,15 +174,20 @@ func (d *dataSourceRules) Read(ctx context.Context, req datasource.ReadRequest, 
 // https://developer.hashicorp.com/terraform/plugin/framework/handling-data/accessing-values
 type dataSourceRulesModel struct {
 	framework.WithRegionModel
-	Rules      fwtypes.ListNestedObjectValueOf[dataSourceRuleModel] `tfsdk:"rules"`
-	NamePrefix types.String                                         `tfsdk:"name_prefix"`
+	Rules        fwtypes.ListNestedObjectValueOf[dataSourceRuleModel] `tfsdk:"rules"`
+	NamePrefix   types.String                                         `tfsdk:"name_prefix"`
+	EventBusName types.String                                         `tfsdk:"event_bus_name"`
 }
 type dataSourceRuleModel struct {
-	ARN          types.String `tfsdk:"arn"`
-	Description  types.String `tfsdk:"description"`
-	EventPattern types.String `tfsdk:"event_pattern"`
-	Name         types.String `tfsdk:"name"`
-	State        types.String `tfsdk:"state"`
+	ARN                types.String `tfsdk:"arn"`
+	Description        types.String `tfsdk:"description"`
+	EventBusName       types.String `tfsdk:"event_bus_name"`
+	EventPattern       types.String `tfsdk:"event_pattern"`
+	ManagedBy          types.String `tfsdk:"managed_by"`
+	Name               types.String `tfsdk:"name"`
+	RoleArn            types.String `tfsdk:"role_arn"`
+	ScheduleExpression types.String `tfsdk:"schedule_expression"`
+	State              types.String `tfsdk:"state"`
 }
 
 func findRules(ctx context.Context, conn *eventbridge.Client, input *eventbridge.ListRulesInput) ([]awstypes.Rule, error) {
