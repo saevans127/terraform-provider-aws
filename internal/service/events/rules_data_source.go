@@ -21,18 +21,6 @@ package events
 // it.
 
 import (
-	// TIP: ==== IMPORTS ====
-	// This is a common set of imports but not customized to your code since
-	// your code hasn't been written yet. Make sure you, your IDE, or
-	// goimports -w <file> fixes these imports.
-	//
-	// The provider linter wants your imports to be in two groups: first,
-	// standard library (i.e., "fmt" or "strings"), second, everything else.
-	//
-	// Also, AWS Go SDK v2 may handle nested structures differently than v1,
-	// using the services/eventbridge/types package. If so, you'll
-	// need to import types and reference the nested types, e.g., as
-	// awstypes.<Type Name>.
 	"context"
 
 	"github.com/aws/aws-sdk-go-v2/service/eventbridge"
@@ -49,16 +37,6 @@ import (
 	"github.com/hashicorp/terraform-provider-aws/names"
 )
 
-// TIP: ==== FILE STRUCTURE ====
-// All data sources should follow this basic outline. Improve this data source's
-// maintainability by sticking to it.
-//
-// 1. Package declaration
-// 2. Imports
-// 3. Main data source struct with schema method
-// 4. Read method
-// 5. Other functions (flatteners, expanders, waiters, finders, etc.)
-
 // Function annotations are used for datasource registration to the Provider. DO NOT EDIT.
 // @FrameworkDataSource("aws_cloudwatch_event_rules", name="Rules")
 func newDataSourceRules(context.Context) (datasource.DataSourceWithConfigure, error) {
@@ -73,29 +51,6 @@ type dataSourceRules struct {
 	framework.DataSourceWithModel[dataSourceRulesModel]
 }
 
-// TIP: ==== SCHEMA ====
-// In the schema, add each of the arguments and attributes in snake
-// case (e.g., delete_automated_backups).
-// * Alphabetize arguments to make them easier to find.
-// * Do not add a blank line between arguments/attributes.
-//
-// Users can configure argument values while attribute values cannot be
-// configured and are used as output. Arguments have either:
-// Required: true,
-// Optional: true,
-//
-// All attributes will be computed and some arguments. If users will
-// want to read updated information or detect drift for an argument,
-// it should be computed:
-// Computed: true,
-//
-// You will typically find arguments in the input struct
-// (e.g., CreateDBInstanceInput) for the create operation. Sometimes
-// they are only in the input struct (e.g., ModifyDBInstanceInput) for
-// the modify operation.
-//
-// For more about schema options, visit
-// https://developer.hashicorp.com/terraform/plugin/framework/handling-data/schemas?page=schemas
 func (d *dataSourceRules) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
