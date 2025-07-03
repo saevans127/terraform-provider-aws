@@ -50,11 +50,11 @@ This data source exports the following attributes in addition to the arguments a
 * `arn` - The ARN of the rule.
 * `description` - The description of the rule.
 * `event_bus_name` - The name or ARN of the event bus associated with the rule. If you omit this, the default event bus is used.
-* `event_pattern` - The event pattern of the rule. For more information, see Events and Event Patterns in the * Amazon EventBridge User Guide *
+* `event_pattern` - The event pattern of the rule. For more information, see [Events and Event Patterns](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-events.html) in the * Amazon EventBridge User Guide *
 * `managed_by` - If the rule was created on behalf of your account by an Amazon Web Services service, this field displays the principal name of the service that created the rule.
 * `name` - The name of the rule.
 * `role_arn` - The Amazon Resource Name (ARN) of the role that is used for target invocation.
-* `schedule_expression` - The scheduling expression. For example, “cron(0 20 * * ? *)”, “rate(5 minutes)”. For more information, see Creating an Amazon EventBridge rule that runs on a schedule .
-* `state` - The state of the rule. Valid values include [DISABLE, ENABLED, ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS]
+* `schedule_expression` - The scheduling expression. For example, “cron(0 20 * * ? *)”, “rate(5 minutes)”. For more information, see [Creating an Amazon EventBridge rule that runs on a schedule](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html) .
+* `state` - The state of the rule. Valid values include DISABLE, ENABLED, ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS.
 
 
